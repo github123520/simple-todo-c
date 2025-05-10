@@ -1,0 +1,36 @@
+name: Release Build
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: true
+        install: >-
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-make
+          base-devel
+    
+    - name: Build
+      shell: msys2 {0}
+      run: |
+        export PATH="/c/msys64/mingw64/bin:$PATH"
+        mkdir -p bin
+        gcc src/main.c src/todo.c src/gui.c -o bin/todo.exe -mwindows -lcomctl32 -luxtheme
+    
+    - name: Upload Release Asset
+      uses: softprops/action-gh-release@v1
+      with:
+        files: bin/todo.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
