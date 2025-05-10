@@ -4,12 +4,16 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write  
+
 jobs:
   build:
     runs-on: windows-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
     
     - name: Set up MSYS2
       uses: msys2/setup-msys2@v2
@@ -33,4 +37,4 @@ jobs:
       with:
         files: bin/todo.exe
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
