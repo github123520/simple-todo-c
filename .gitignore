@@ -1,1 +1,15 @@
+
+bin/
 *.exe
+*.o
+*.res
+*.rc
+!src/app.manifest
+upx*/
+*.zip
+.vscode/
+.idea/
+*.swp
+*~
+Thumbs.db
+desktop.ini

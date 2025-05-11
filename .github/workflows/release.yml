@@ -23,14 +23,68 @@ jobs:
         install: >-
           mingw-w64-x86_64-gcc
           mingw-w64-x86_64-make
+          mingw-w64-x86_64-binutils
           base-devel
+    
+    - name: Create Manifest
+      shell: pwsh
+      run: |
+        @'
+        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+            <assemblyIdentity
+                version="0.3.0.0"
+                processorArchitecture="*"
+                name="TodoApp"
+                type="win32"
+            />
+            <description>Simple Todo Application</description>
+            
+            <!-- Enable visual styles -->
+            <dependency>
+                <dependentAssembly>
+                    <assemblyIdentity
+                        type="win32"
+                        name="Microsoft.Windows.Common-Controls"
+                        version="6.0.0.0"
+                        processorArchitecture="*"
+                        publicKeyToken="6595b64144ccf1df"
+                        language="*"
+                    />
+                </dependentAssembly>
+            </dependency>
+            
+            <!-- DPI Awareness -->
+            <application xmlns="urn:schemas-microsoft-com:asm.v3">
+                <windowsSettings>
+                    <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true</dpiAware>
+                    <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2</dpiAwareness>
+                </windowsSettings>
+            </application>
+        </assembly>
+        '@ | Set-Content -Path "src/app.manifest"
     
     - name: Build
       shell: msys2 {0}
       run: |
         export PATH="/c/msys64/mingw64/bin:$PATH"
         mkdir -p bin
-        gcc src/main.c src/todo.c src/gui.c -o bin/todo.exe -mwindows -lcomctl32 -luxtheme
+        # Create resource file from manifest
+        echo '1 24 "src/app.manifest"' > src/app.rc
+        windres src/app.rc -O coff -o src/app.res
+        # Compile with manifest and optimizations
+        gcc src/main.c src/todo.c src/gui.c src/app.res -o bin/todo.exe -mwindows -lcomctl32 -luxtheme -Os -s
+    
+    - name: Download UPX
+      shell: pwsh
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v5.0.1/upx-5.0.1-win64.zip" -OutFile "upx.zip"
+        Expand-Archive -Path upx.zip -DestinationPath .
+    
+    - name: Compress with UPX
+      shell: pwsh
+      run: |
+        ./upx-5.0.1-win64/upx.exe --best bin/todo.exe
     
     - name: Upload Release Asset
       uses: softprops/action-gh-release@v1

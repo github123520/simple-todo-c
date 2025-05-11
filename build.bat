@@ -2,28 +2,45 @@
 chcp 65001 >nul
 title Build: Todo App
 echo ------------------------------
-echo 🚀 Building Todo Application...
+echo Building Todo Application...
 echo ------------------------------
 
 where gcc >nul 2>nul
 if %errorlevel% neq 0 (
-    echo ❌ Error: GCC not found!
-    echo    → Please install MinGW and add it to your PATH
+    echo Error: GCC not found!
+    echo Please install MinGW and add it to your PATH
     pause
     exit /b 1
 )
 
 if not exist bin mkdir bin
 
-echo 🛠️  Compiling sources...
-gcc src/main.c src/todo.c src/gui.c -o bin/todo.exe -mwindows -lcomctl32 -luxtheme
+echo Creating resource file...
+echo 1 24 "src/app.manifest" > src/app.rc
+windres src/app.rc -O coff -o src/app.res
+
+echo Compiling sources...
+gcc src/main.c src/todo.c src/gui.c src/app.res -o bin/todo.exe ^
+    -mwindows ^
+    -lcomctl32 ^
+    -luxtheme ^
+    -Os ^
+    -s
 
 if %errorlevel% neq 0 (
-    echo ❌ Compilation failed!
+    echo Compilation failed!
     pause
     exit /b 1
 )
 
-echo ✅ Build successful!
-echo ▶️  Launching the application...
+echo Build successful!
+
+:: Optional UPX compression
+where upx >nul 2>nul
+if %errorlevel% equ 0 (
+    echo Compressing with UPX...
+    upx --best bin/todo.exe
+)
+
+echo Launching the application...
 start bin\todo.exe
