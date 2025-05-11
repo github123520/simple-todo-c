@@ -29,10 +29,24 @@ void removeTrayIcon(void) {
 void showTrayMenu(HWND hwnd) {
     POINT pt;
     GetCursorPos(&pt);
+    
+    HMENU hMenu = CreatePopupMenu();
+    AppendMenu(hMenu, MF_STRING, ID_TRAY_SHOW, "Show");
+    AppendMenu(hMenu, MF_STRING, ID_TRAY_HIDE, "Hide");
+    AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
+    
+   
+    UINT autoStartState = isAutoStartEnabled() ? MF_CHECKED : MF_UNCHECKED;
+    AppendMenu(hMenu, MF_STRING | autoStartState, ID_TRAY_AUTOSTART, "Start with Windows");
+    
+    AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
+    AppendMenu(hMenu, MF_STRING, ID_TRAY_EXIT, "Exit");
+    
     SetForegroundWindow(hwnd);
-    TrackPopupMenu(hTrayMenu, TPM_RIGHTALIGN | TPM_BOTTOMALIGN,
-                  pt.x, pt.y, 0, hwnd, NULL);
+    TrackPopupMenu(hMenu, TPM_RIGHTALIGN | TPM_BOTTOMALIGN,
+        pt.x, pt.y, 0, hwnd, NULL);
     PostMessage(hwnd, WM_NULL, 0, 0);
+    DestroyMenu(hMenu);
 }
 
 HWND createModernButton(HWND hParent, const char* text, int x, int y, int width, int height, int id) {
@@ -190,8 +204,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     removeTrayIcon();
                     PostQuitMessage(0);
                     break;
-                case ID_TRAY_SHOW: ShowWindow(hwnd, SW_SHOW); break;
-                case ID_TRAY_HIDE: ShowWindow(hwnd, SW_HIDE); break;
+                case ID_TRAY_SHOW: 
+                    ShowWindow(hwnd, SW_SHOW); 
+                    break;
+                case ID_TRAY_HIDE: 
+                    ShowWindow(hwnd, SW_HIDE); 
+                    break;
+                case ID_TRAY_AUTOSTART:
+                    setAutoStart(!isAutoStartEnabled());
+                    break;
             }
             break;
         }

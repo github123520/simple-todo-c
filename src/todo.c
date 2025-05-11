@@ -263,4 +263,45 @@ void completeTodo(void) {
     
     saveTodos(&todoList);
     refreshListView();
+}
+
+void setAutoStart(BOOL enable) {
+    HKEY hKey;
+    char exePath[MAX_PATH];
+    GetModuleFileName(NULL, exePath, MAX_PATH);
+    
+    if (RegOpenKeyEx(HKEY_CURRENT_USER, 
+        "Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
+        0, KEY_SET_VALUE, &hKey) == ERROR_SUCCESS) {
+        
+        if (enable) {
+            RegSetValueEx(hKey, "TodoApp", 0, REG_SZ, 
+                (BYTE*)exePath, strlen(exePath) + 1);
+        } else {
+            RegDeleteValue(hKey, "TodoApp");
+        }
+        
+        RegCloseKey(hKey);
+    }
+}
+
+BOOL isAutoStartEnabled(void) {
+    HKEY hKey;
+    char value[MAX_PATH];
+    DWORD valueSize = sizeof(value);
+    BOOL result = FALSE;
+    
+    if (RegOpenKeyEx(HKEY_CURRENT_USER, 
+        "Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
+        0, KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS) {
+        
+        if (RegQueryValueEx(hKey, "TodoApp", NULL, NULL, 
+            (BYTE*)value, &valueSize) == ERROR_SUCCESS) {
+            result = TRUE;
+        }
+        
+        RegCloseKey(hKey);
+    }
+    
+    return result;
 } 

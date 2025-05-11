@@ -15,6 +15,7 @@ A modern, native Windows Todo application built with C and Win32 API. This proje
 - 💾 Persistent storage in AppData
 - 🔔 System tray integration (minimize to tray)
 - 🌙 Native Windows look and feel
+- 🚀 Auto-start with Windows option
 
 ## 🛠️ Technical Details
 

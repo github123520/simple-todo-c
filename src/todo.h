@@ -34,6 +34,7 @@
 #define ID_TRAY_EXIT 101
 #define ID_TRAY_SHOW 102
 #define ID_TRAY_HIDE 103
+#define ID_TRAY_AUTOSTART 104
 
 #define COLOR_BG RGB(240, 240, 240)
 #define COLOR_ACCENT RGB(0, 120, 215)
@@ -93,6 +94,8 @@ HWND createModernComboBox(HWND parent, int x, int y, int width, int height, int 
 void initTrayIcon(HWND hwnd);
 void removeTrayIcon(void);
 void showTrayMenu(HWND hwnd);
+void setAutoStart(BOOL enable);
+BOOL isAutoStartEnabled(void);
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 #endif 
