@@ -18,10 +18,23 @@ int editingIndex = -1;
 
 void initAppData(void) {
     char* appDataPath = getAppDataPath();
-    if (!CreateDirectory(appDataPath, NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
-        MessageBox(NULL, "Failed to create AppData directory!", "Error", MB_ICONERROR);
+    if (appDataPath == NULL) {
+        MessageBox(NULL, "Failed to get AppData path!", "Error", MB_ICONERROR);
         exit(1);
     }
+
+    
+    BOOL created = CreateDirectory(appDataPath, NULL);
+    DWORD error = GetLastError();
+    
+    if (!created && error != ERROR_ALREADY_EXISTS) {
+        char errorMsg[256];
+        sprintf(errorMsg, "Failed to create directory: %s (Error: %lu)", appDataPath, error);
+        MessageBox(NULL, errorMsg, "Error", MB_ICONERROR);
+        free(appDataPath);
+        exit(1);
+    }
+    
     free(appDataPath);
 }
 
@@ -29,22 +42,41 @@ char* getAppDataPath(void) {
     char* appDataPath = getenv("APPDATA");
     if (appDataPath == NULL) {
         MessageBox(NULL, "APPDATA environment variable not found!", "Error", MB_ICONERROR);
-        exit(1);
+        return NULL;
     }
     
-    char* fullPath = malloc(strlen(appDataPath) + 20);
-    sprintf(fullPath, "%s\\TodoApp", appDataPath);
+    
+    size_t pathLen = strlen(appDataPath) + strlen("\\TodoApp") + 1;
+    char* fullPath = malloc(pathLen);
+    if (fullPath == NULL) {
+        MessageBox(NULL, "Memory allocation failed!", "Error", MB_ICONERROR);
+        return NULL;
+    }
+    
+    
+    strcpy(fullPath, appDataPath);
+    strcat(fullPath, "\\TodoApp");
+    
     return fullPath;
 }
 
 void loadTodos(TodoList* list) {
     char* appDataPath = getAppDataPath();
+    if (appDataPath == NULL) {
+        list->count = 0;
+        return;
+    }
+
+    
+    initAppData();
+    
     char filePath[MAX_PATH];
     sprintf(filePath, "%s\\%s", appDataPath, DATA_FILE);
     
     FILE* file = fopen(filePath, "rb");
     if (file == NULL) {
         list->count = 0;
+        free(appDataPath);
         return;
     }
     
@@ -55,12 +87,23 @@ void loadTodos(TodoList* list) {
 
 void saveTodos(TodoList* list) {
     char* appDataPath = getAppDataPath();
+    if (appDataPath == NULL) {
+        MessageBox(NULL, "Failed to get AppData path!", "Error", MB_ICONERROR);
+        return;
+    }
+
+    
+    initAppData();
+    
     char filePath[MAX_PATH];
     sprintf(filePath, "%s\\%s", appDataPath, DATA_FILE);
     
     FILE* file = fopen(filePath, "wb");
     if (file == NULL) {
-        MessageBox(NULL, "Failed to save file!", "Error", MB_ICONERROR);
+        char errorMsg[256];
+        sprintf(errorMsg, "Failed to save file: %s", filePath);
+        MessageBox(NULL, errorMsg, "Error", MB_ICONERROR);
+        free(appDataPath);
         return;
     }
     
