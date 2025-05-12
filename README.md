@@ -2,7 +2,7 @@
 ![Platform](https://img.shields.io/badge/platform-windows-blue)
 ![Language](https://img.shields.io/badge/language-C-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-yellow)
-![Size](https://img.shields.io/badge/size-26.5%20KB-brightgreen)
+![Size](https://img.shields.io/badge/size-54%20KB-brightgreen)
 
 
 A modern, native Windows Todo application built with C and Win32 API. This project demonstrates advanced Windows GUI programming and system integration capabilities.
@@ -23,7 +23,7 @@ A modern, native Windows Todo application built with C and Win32 API. This proje
 - Written in pure C
 - Uses Win32 API for GUI
 - System tray integration
-- Tiny executable size (26.5 KB after UPX compression)
+- Lightweight native executable
 - Modern Windows visual styles with manifest
 
 ## 💾 Data Storage
@@ -73,6 +73,7 @@ The application stores todos in a binary file:
 ```
 .
 ├── src/
+│   ├── app.manifest
 │   ├── main.c      # Application entry point
 │   ├── todo.c      # Todo management logic
 │   ├── todo.h      # Todo data structures and declarations

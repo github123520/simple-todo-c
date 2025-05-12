@@ -8,7 +8,7 @@
     />
     <description>Simple Todo Application</description>
     
-    <!-- Enable visual styles -->
+    
     <dependency>
         <dependentAssembly>
             <assemblyIdentity
@@ -22,7 +22,7 @@
         </dependentAssembly>
     </dependency>
     
-    <!-- DPI Awareness -->
+    
     <application xmlns="urn:schemas-microsoft-com:asm.v3">
         <windowsSettings>
             <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true</dpiAware>

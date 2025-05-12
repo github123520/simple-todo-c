@@ -35,12 +35,5 @@ if %errorlevel% neq 0 (
 
 echo Build successful!
 
-:: Optional UPX compression
-where upx >nul 2>nul
-if %errorlevel% equ 0 (
-    echo Compressing with UPX...
-    upx --best bin/todo.exe
-)
-
 echo Launching the application...
 start bin\todo.exe

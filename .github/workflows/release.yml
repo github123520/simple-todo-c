@@ -1,8 +1,9 @@
 name: Release Build
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write  
@@ -74,21 +75,15 @@ jobs:
         windres src/app.rc -O coff -o src/app.res
         # Compile with manifest and optimizations
         gcc src/main.c src/todo.c src/gui.c src/app.res -o bin/todo.exe -mwindows -lcomctl32 -luxtheme -Os -s
-    
-    - name: Download UPX
-      shell: pwsh
-      run: |
-        Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v5.0.1/upx-5.0.1-win64.zip" -OutFile "upx.zip"
-        Expand-Archive -Path upx.zip -DestinationPath .
-    
-    - name: Compress with UPX
-      shell: pwsh
-      run: |
-        ./upx-5.0.1-win64/upx.exe --best bin/todo.exe
-    
-    - name: Upload Release Asset
+
+    - name: Create Release
+      id: create_release
       uses: softprops/action-gh-release@v1
       with:
         files: bin/todo.exe
+        name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
