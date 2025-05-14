@@ -2,6 +2,7 @@
 
 NOTIFYICONDATA nid;
 HMENU hTrayMenu;
+BOOL bSortOrder = TRUE;
 
 void initTrayIcon(HWND hwnd) {
     nid.cbSize = sizeof(NOTIFYICONDATA);
@@ -83,6 +84,17 @@ HWND createModernComboBox(HWND hParent, int x, int y, int width, int height, int
     
     SendMessage(hCombo, WM_SETFONT, (WPARAM)hFont, TRUE);
     return hCombo;
+}
+
+int CALLBACK SortTodo(LPARAM lParam1, LPARAM lParam2, LPARAM lPrarmExtra) {
+    int* targetSortingColumn = (int*)lPrarmExtra;
+    char buf1[MAX_DESC_LENGTH], buf2[MAX_DESC_LENGTH];
+    ZeroMemory(buf1, MAX_DESC_LENGTH);
+    ZeroMemory(buf2, MAX_DESC_LENGTH);
+    ListView_GetItemText(hListView, lParam1, *targetSortingColumn, buf1, MAX_DESC_LENGTH);
+    ListView_GetItemText(hListView, lParam2, *targetSortingColumn, buf2, MAX_DESC_LENGTH);
+
+    return bSortOrder ? strcmp(buf1, buf2) >= 0: strcmp(buf1, buf2) <= 0;
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -255,6 +267,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                         SendMessage(hPriorityCombo, CB_SETCURSEL, todo->priority - 1, 0);
                     }
                 }
+            }
+            if (pnmh->code == LVN_COLUMNCLICK) {
+                bSortOrder = !bSortOrder;
+                NMLISTVIEW* pnmlv = (NMLISTVIEW*)lParam;
+                ListView_SortItemsEx(hListView, SortTodo,  &pnmlv->iSubItem);
+                return TRUE;
             }
             if (pnmh->code == NM_DBLCLK && pnmh->idFrom == ID_LISTVIEW) {
                 startEditTodo();
