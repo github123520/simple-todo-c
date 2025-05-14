@@ -1,8 +1,31 @@
 #include "todo.h"
+#include <math.h>
 
 NOTIFYICONDATA nid;
 HMENU hTrayMenu;
 BOOL bSortOrder = TRUE;
+UINT dpi = 96;
+
+
+char easterEggBuffer[20] = {0};
+int easterEggIndex = 0;
+const char* easterEggCode = "goodtodooo";
+
+int GetDpiForWindow(HWND hwnd) {
+    HMODULE hUser32 = GetModuleHandle("user32.dll");
+    if (hUser32) {
+        typedef UINT (WINAPI *GetDpiForWindowFunc)(HWND);
+        GetDpiForWindowFunc getDpiForWindow = (GetDpiForWindowFunc)GetProcAddress(hUser32, "GetDpiForWindow");
+        if (getDpiForWindow) {
+            return getDpiForWindow(hwnd);
+        }
+    }
+    return 96;
+}
+
+int ScaleForDpi(int value) {
+    return MulDiv(value, dpi, 96);
+}
 
 void initTrayIcon(HWND hwnd) {
     nid.cbSize = sizeof(NOTIFYICONDATA);
@@ -99,8 +122,37 @@ int CALLBACK SortTodo(LPARAM lParam1, LPARAM lParam2, LPARAM lPrarmExtra) {
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
+        case WM_DPICHANGED: {
+            dpi = HIWORD(wParam);
+            RECT* newRect = (RECT*)lParam;
+            SetWindowPos(hwnd, NULL, newRect->left, newRect->top,
+                        newRect->right - newRect->left,
+                        newRect->bottom - newRect->top,
+                        SWP_NOZORDER | SWP_NOACTIVATE);
+            
+            DeleteObject(hFont);
+            hFont = CreateFont(ScaleForDpi(16), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+                             DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                             CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Segoe UI");
+            
+            SendMessage(hListView, WM_SETFONT, (WPARAM)hFont, TRUE);
+            SendMessage(hTitleEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
+            SendMessage(hDescEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
+            SendMessage(hPriorityCombo, WM_SETFONT, (WPARAM)hFont, TRUE);
+            SendMessage(hAddButton, WM_SETFONT, (WPARAM)hFont, TRUE);
+            SendMessage(hEditButton, WM_SETFONT, (WPARAM)hFont, TRUE);
+            SendMessage(hSaveButton, WM_SETFONT, (WPARAM)hFont, TRUE);
+            SendMessage(hCancelButton, WM_SETFONT, (WPARAM)hFont, TRUE);
+            SendMessage(hDeleteButton, WM_SETFONT, (WPARAM)hFont, TRUE);
+            SendMessage(hCompleteButton, WM_SETFONT, (WPARAM)hFont, TRUE);
+            
+            InvalidateRect(hwnd, NULL, TRUE);
+            return 0;
+        }
+        
         case WM_CREATE: {
-            hFont = CreateFont(16, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+            dpi = GetDpiForWindow(hwnd);
+            hFont = CreateFont(ScaleForDpi(16), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
                              DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                              CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Segoe UI");
 
@@ -108,11 +160,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             GetClientRect(hwnd, &rc);
             int width = rc.right - rc.left;
 
-            // ListView: Top, full width, height 300
             hListView = CreateWindow(
                 WC_LISTVIEW, "",
                 WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER,
-                10, 10, width - 20, 300,
+                ScaleForDpi(10), ScaleForDpi(10), width - ScaleForDpi(20), ScaleForDpi(300),
                 hwnd, (HMENU)(INT_PTR)ID_LISTVIEW, GetModuleHandle(NULL), NULL
             );
             ListView_SetExtendedListViewStyle(hListView, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
@@ -120,51 +171,49 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
             LVCOLUMN lvc = {0};
             lvc.mask = LVCF_TEXT | LVCF_WIDTH;
-            lvc.pszText = "ID"; lvc.cx = 40; ListView_InsertColumn(hListView, 0, &lvc);
-            lvc.pszText = "Title"; lvc.cx = 150; ListView_InsertColumn(hListView, 1, &lvc);
-            lvc.pszText = "Description"; lvc.cx = 200; ListView_InsertColumn(hListView, 2, &lvc);
-            lvc.pszText = "Priority"; lvc.cx = 80; ListView_InsertColumn(hListView, 3, &lvc);
-            lvc.pszText = "Status"; lvc.cx = 100; ListView_InsertColumn(hListView, 4, &lvc);
-            lvc.pszText = "Created"; lvc.cx = 150; ListView_InsertColumn(hListView, 5, &lvc);
+            lvc.pszText = "ID"; lvc.cx = ScaleForDpi(40); ListView_InsertColumn(hListView, 0, &lvc);
+            lvc.pszText = "Title"; lvc.cx = ScaleForDpi(150); ListView_InsertColumn(hListView, 1, &lvc);
+            lvc.pszText = "Description"; lvc.cx = ScaleForDpi(200); ListView_InsertColumn(hListView, 2, &lvc);
+            lvc.pszText = "Priority"; lvc.cx = ScaleForDpi(80); ListView_InsertColumn(hListView, 3, &lvc);
+            lvc.pszText = "Status"; lvc.cx = ScaleForDpi(100); ListView_InsertColumn(hListView, 4, &lvc);
+            lvc.pszText = "Created"; lvc.cx = ScaleForDpi(150); ListView_InsertColumn(hListView, 5, &lvc);
 
-            int y = 320;
-            int x = 10;
-            int labelW = 50, editW = 120, gap = 10, btnW = 80, btnH = 28;
+            int y = ScaleForDpi(320);
+            int x = ScaleForDpi(10);
+            int labelW = ScaleForDpi(50), editW = ScaleForDpi(120), gap = ScaleForDpi(10), btnW = ScaleForDpi(80), btnH = ScaleForDpi(28);
 
             HWND hStatic;
             hStatic = CreateWindow("STATIC", "Title:", WS_CHILD | WS_VISIBLE,
-                                 x, y+5, labelW, 20, hwnd, NULL, GetModuleHandle(NULL), NULL);
+                                 x, y+ScaleForDpi(5), labelW, ScaleForDpi(20), hwnd, NULL, GetModuleHandle(NULL), NULL);
             SendMessage(hStatic, WM_SETFONT, (WPARAM)hFont, TRUE);
             x += labelW;
             hTitleEdit = createModernEdit(hwnd, x, y, editW, btnH, ID_TITLE_EDIT);
             x += editW + gap;
 
             hStatic = CreateWindow("STATIC", "Description:", WS_CHILD | WS_VISIBLE,
-                                 x, y+5, labelW+20, 20, hwnd, NULL, GetModuleHandle(NULL), NULL);
+                                 x, y+ScaleForDpi(5), labelW+ScaleForDpi(20), ScaleForDpi(20), hwnd, NULL, GetModuleHandle(NULL), NULL);
             SendMessage(hStatic, WM_SETFONT, (WPARAM)hFont, TRUE);
-            x += labelW+20;
+            x += labelW+ScaleForDpi(20);
             hDescEdit = createModernEdit(hwnd, x, y, editW, btnH, ID_DESC_EDIT);
             x += editW + gap;
 
             hStatic = CreateWindow("STATIC", "Priority:", WS_CHILD | WS_VISIBLE,
-                                 x, y+5, labelW, 20, hwnd, NULL, GetModuleHandle(NULL), NULL);
+                                 x, y+ScaleForDpi(5), labelW, ScaleForDpi(20), hwnd, NULL, GetModuleHandle(NULL), NULL);
             SendMessage(hStatic, WM_SETFONT, (WPARAM)hFont, TRUE);
             x += labelW;
-            hPriorityCombo = createModernComboBox(hwnd, x, y, 50, btnH, ID_PRIORITY_COMBO);
+            hPriorityCombo = createModernComboBox(hwnd, x, y, ScaleForDpi(50), btnH, ID_PRIORITY_COMBO);
             for (int i = 1; i <= 5; i++) {
                 char priority[10];
                 sprintf(priority, "%d", i);
                 SendMessage(hPriorityCombo, CB_ADDSTRING, 0, (LPARAM)priority);
             }
             SendMessage(hPriorityCombo, CB_SETCURSEL, 0, 0);
-            x += 50 + gap;
+            x += ScaleForDpi(50) + gap;
 
-            
             hAddButton = createModernButton(hwnd, "Add", x, y, btnW, btnH, ID_ADD_BUTTON);
 
-            
             int actionY = y + btnH + gap;
-            int actionX = 10;
+            int actionX = ScaleForDpi(10);
             hEditButton = createModernButton(hwnd, "Edit", actionX, actionY, btnW, btnH, ID_EDIT_BUTTON);
             actionX += btnW + gap;
             hSaveButton = createModernButton(hwnd, "Save", actionX, actionY, btnW, btnH, ID_SAVE_BUTTON);
@@ -280,6 +329,21 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             break;
         }
         
+        case WM_CHAR: {
+            if (wParam >= 'a' && wParam <= 'z') {
+                easterEggBuffer[easterEggIndex] = (char)wParam;
+                easterEggIndex = (easterEggIndex + 1) % 20;
+                
+                if (strcmp(easterEggBuffer, easterEggCode) == 0) {
+                    SetWindowText(hwnd, "🎉 Yay! You found the easter egg! 🎉");
+                    MessageBox(hwnd, "You're awesome! 🌟", "Good Todo!", MB_OK | MB_ICONINFORMATION);
+                    memset(easterEggBuffer, 0, sizeof(easterEggBuffer));
+                    easterEggIndex = 0;
+                }
+            }
+            break;
+        }
+        
         case WM_CTLCOLORSTATIC: {
             HDC hdcStatic = (HDC)wParam;
             SetTextColor(hdcStatic, COLOR_TEXT);
@@ -301,12 +365,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             return (LRESULT)GetStockObject(WHITE_BRUSH);
         }
         
-        case WM_DESTROY:
+        case WM_DESTROY: {
             removeTrayIcon();
             DeleteObject(hFont);
             DeleteObject(hBgBrush);
             PostQuitMessage(0);
             return 0;
+        }
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 } 
