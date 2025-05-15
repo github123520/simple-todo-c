@@ -14,6 +14,7 @@ HWND hCompleteButton;
 TodoList todoList;
 HFONT hFont;
 HBRUSH hBgBrush;
+HICON hTodoIcon;
 int editingIndex = -1;
 
 void initAppData(void) {

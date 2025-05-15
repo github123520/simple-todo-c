@@ -17,6 +17,7 @@ if not exist bin mkdir bin
 
 echo Creating resource file...
 echo 1 24 "src/app.manifest" > src/app.rc
+echo 400 ICON "img/todo.ico" >> src/app.rc
 windres src/app.rc -O coff -o src/app.res
 
 echo Compiling sources...
