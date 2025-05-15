@@ -283,11 +283,30 @@ void deleteTodo(void) {
         MessageBox(NULL, "Please select a todo to delete!", "Error", MB_ICONERROR);
         return;
     }
+    char szTaskId[10];
+    ZeroMemory(szTaskId, 10);
+    int iTaskToRemve[MAX_TODOS];
+    int iCntToRemove = 0;
     
-    for (int i = selectedIndex; i < todoList.count - 1; i++) {
-        todoList.todos[i] = todoList.todos[i + 1];
+    ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
+    while (selectedIndex != -1) {
+        iTaskToRemve[iCntToRemove++] = atoi(szTaskId);
+        selectedIndex = ListView_GetNextItem(hListView, selectedIndex, LVNI_SELECTED);
+        ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
     }
-    todoList.count--;
+
+    for (int i = 0; i < iCntToRemove; i++) {
+        for (int j = 0; j < todoList.count;j++) {
+            // find real id to delete and delete task
+            if (todoList.todos[j].id == iTaskToRemve[i]) {
+                for (int k = j; k < todoList.count - 1; k++) {
+                    todoList.todos[k] = todoList.todos[k + 1];
+                }
+                todoList.count--;
+                break;
+            }
+        }
+    }
     
     saveTodos(&todoList);
     refreshListView();
