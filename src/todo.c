@@ -286,27 +286,22 @@ void deleteTodo(void) {
     }
     char szTaskId[10];
     ZeroMemory(szTaskId, 10);
-    int iTaskToRemve[MAX_TODOS];
-    int iCntToRemove = 0;
     
     ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
     while (selectedIndex != -1) {
-        iTaskToRemve[iCntToRemove++] = atoi(szTaskId);
-        selectedIndex = ListView_GetNextItem(hListView, selectedIndex, LVNI_SELECTED);
-        ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
-    }
-
-    for (int i = 0; i < iCntToRemove; i++) {
-        for (int j = 0; j < todoList.count;j++) {
+        int iTargetID =  atoi(szTaskId);
+        for (int i = 0; i < todoList.count;i++) {
             // find real id to delete and delete task
-            if (todoList.todos[j].id == iTaskToRemve[i]) {
-                for (int k = j; k < todoList.count - 1; k++) {
-                    todoList.todos[k] = todoList.todos[k + 1];
+            if (todoList.todos[i].id == iTargetID) {
+                for (int j = i; j < todoList.count - 1; j++) {
+                    todoList.todos[j] = todoList.todos[j + 1];
                 }
                 todoList.count--;
                 break;
             }
         }
+        selectedIndex = ListView_GetNextItem(hListView, selectedIndex, LVNI_SELECTED);
+        ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
     }
     
     saveTodos(&todoList);
