@@ -44,6 +44,8 @@
 #define COLOR_BUTTON_HOVER RGB(0, 100, 195)
 #define COLOR_BUTTON_PRESSED RGB(0, 80, 175)
 
+#define IDI_ICON1 400
+
 typedef struct {
     int id;
     char title[MAX_TITLE_LENGTH];
@@ -76,6 +78,7 @@ extern HBRUSH hBgBrush;
 extern NOTIFYICONDATA nid;
 extern HMENU hTrayMenu;
 extern int editingIndex;
+extern HICON hTodoIcon;
 
 void initAppData(void);
 char* getAppDataPath(void);

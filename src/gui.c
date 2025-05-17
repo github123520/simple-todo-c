@@ -33,7 +33,7 @@ void initTrayIcon(HWND hwnd) {
     nid.uID = ID_TRAY_ICON;
     nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
     nid.uCallbackMessage = WM_TRAYICON;
-    nid.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    nid.hIcon = hTodoIcon;
     strcpy(nid.szTip, "Todo Application");
     
     Shell_NotifyIcon(NIM_ADD, &nid);

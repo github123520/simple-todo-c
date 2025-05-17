@@ -14,6 +14,7 @@ HWND hCompleteButton;
 TodoList todoList;
 HFONT hFont;
 HBRUSH hBgBrush;
+HICON hTodoIcon;
 int editingIndex = -1;
 
 void initAppData(void) {
@@ -283,11 +284,25 @@ void deleteTodo(void) {
         MessageBox(NULL, "Please select a todo to delete!", "Error", MB_ICONERROR);
         return;
     }
+    char szTaskId[10];
+    ZeroMemory(szTaskId, 10);
     
-    for (int i = selectedIndex; i < todoList.count - 1; i++) {
-        todoList.todos[i] = todoList.todos[i + 1];
+    ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
+    while (selectedIndex != -1) {
+        int iTargetID =  atoi(szTaskId);
+        for (int i = 0; i < todoList.count;i++) {
+            // find real id to delete and delete task
+            if (todoList.todos[i].id == iTargetID) {
+                for (int j = i; j < todoList.count - 1; j++) {
+                    todoList.todos[j] = todoList.todos[j + 1];
+                }
+                todoList.count--;
+                break;
+            }
+        }
+        selectedIndex = ListView_GetNextItem(hListView, selectedIndex, LVNI_SELECTED);
+        ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
     }
-    todoList.count--;
     
     saveTodos(&todoList);
     refreshListView();

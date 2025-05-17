@@ -23,12 +23,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     
     RegisterClass(&wc);
     
+    hTodoIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
     hMainWindow = CreateWindow(
         "TodoApp", "Todo Application",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, 800, 450,
         NULL, NULL, hInstance, NULL
     );
+
+    SetClassLongPtr(hMainWindow, GCLP_HICON, (LONG_PTR)hTodoIcon);
+    SetClassLongPtr(hMainWindow, GCLP_HICONSM, (LONG_PTR)hTodoIcon);
     
     if (hMainWindow == NULL) {
         MessageBox(NULL, "Window creation failed!", "Error", MB_ICONERROR);
