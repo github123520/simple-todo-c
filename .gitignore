@@ -4,7 +4,6 @@ bin/
 *.o
 *.res
 *.rc
-!src/app.manifest
 upx*/
 *.zip
 .vscode/

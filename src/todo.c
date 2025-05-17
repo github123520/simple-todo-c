@@ -16,6 +16,7 @@ HFONT hFont;
 HBRUSH hBgBrush;
 HICON hTodoIcon;
 int editingIndex = -1;
+volatile BOOL g_errorBoxOpen = FALSE;
 
 void initAppData(void) {
     char* appDataPath = getAppDataPath();
@@ -146,9 +147,16 @@ void refreshListView(void) {
     }
 }
 
+void showErrorBox(const char* message, const char* title) {
+    if (g_errorBoxOpen) return;
+    g_errorBoxOpen = TRUE;
+    MessageBox(NULL, message, title, MB_ICONERROR);
+    g_errorBoxOpen = FALSE;
+}
+
 void addTodo(void) {
     if (todoList.count >= MAX_TODOS) {
-        MessageBox(NULL, "Maximum number of todos reached!", "Error", MB_ICONERROR);
+        showErrorBox("Maximum number of todos reached!", "Error");
         return;
     }
     
@@ -161,7 +169,7 @@ void addTodo(void) {
     priority = SendMessage(hPriorityCombo, CB_GETCURSEL, 0, 0) + 1;
     
     if (strlen(title) == 0) {
-        MessageBox(NULL, "Please enter a title!", "Error", MB_ICONERROR);
+        showErrorBox("Please enter a title!", "Error");
         return;
     }
     
@@ -186,12 +194,11 @@ void addTodo(void) {
 void startEditTodo(void) {
     int selectedIndex = ListView_GetNextItem(hListView, -1, LVNI_SELECTED);
     if (selectedIndex == -1) {
-        MessageBox(NULL, "Please select a todo to edit!", "Error", MB_ICONERROR);
+        showErrorBox("Please select a todo to edit!", "Error");
         return;
     }
-    
     if (editingIndex != -1) {
-        MessageBox(NULL, "Please finish editing the current todo first!", "Error", MB_ICONERROR);
+        showErrorBox("Please finish editing the current todo first!", "Error");
         return;
     }
     
@@ -225,7 +232,7 @@ void saveEditTodo(void) {
     int priority = SendMessage(hPriorityCombo, CB_GETCURSEL, 0, 0) + 1;
     
     if (strlen(title) == 0) {
-        MessageBox(NULL, "Title cannot be empty!", "Error", MB_ICONERROR);
+        showErrorBox("Title cannot be empty!", "Error");
         return;
     }
     
@@ -281,17 +288,15 @@ void cancelEditTodo(void) {
 void deleteTodo(void) {
     int selectedIndex = ListView_GetNextItem(hListView, -1, LVNI_SELECTED);
     if (selectedIndex == -1) {
-        MessageBox(NULL, "Please select a todo to delete!", "Error", MB_ICONERROR);
+        showErrorBox("Please select a todo to delete!", "Error");
         return;
     }
     char szTaskId[10];
     ZeroMemory(szTaskId, 10);
-    
     ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
     while (selectedIndex != -1) {
         int iTargetID =  atoi(szTaskId);
         for (int i = 0; i < todoList.count;i++) {
-            // find real id to delete and delete task
             if (todoList.todos[i].id == iTargetID) {
                 for (int j = i; j < todoList.count - 1; j++) {
                     todoList.todos[j] = todoList.todos[j + 1];
@@ -301,9 +306,9 @@ void deleteTodo(void) {
             }
         }
         selectedIndex = ListView_GetNextItem(hListView, selectedIndex, LVNI_SELECTED);
-        ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
+        if (selectedIndex != -1)
+            ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
     }
-    
     saveTodos(&todoList);
     refreshListView();
 }
@@ -311,13 +316,26 @@ void deleteTodo(void) {
 void completeTodo(void) {
     int selectedIndex = ListView_GetNextItem(hListView, -1, LVNI_SELECTED);
     if (selectedIndex == -1) {
-        MessageBox(NULL, "Please select a todo to complete!", "Error", MB_ICONERROR);
+        showErrorBox("Please select a todo to complete!", "Error");
         return;
     }
+    char szTaskId[10];
+    ZeroMemory(szTaskId, 10);
     
-    Todo* todo = &todoList.todos[selectedIndex];
-    todo->completed = 1;
-    todo->completed_at = time(NULL);
+    ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
+    while (selectedIndex != -1) {
+        int iTargetID = atoi(szTaskId);
+        for (int i = 0; i < todoList.count; i++) {
+            if (todoList.todos[i].id == iTargetID) {
+                todoList.todos[i].completed = 1;
+                todoList.todos[i].completed_at = time(NULL);
+                break;
+            }
+        }
+        selectedIndex = ListView_GetNextItem(hListView, selectedIndex, LVNI_SELECTED);
+        if (selectedIndex != -1)
+            ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
+    }
     
     saveTodos(&todoList);
     refreshListView();
