@@ -2,7 +2,7 @@
 ![Platform](https://img.shields.io/badge/platform-windows-blue)
 ![Language](https://img.shields.io/badge/language-C-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-yellow)
-![Size](https://img.shields.io/badge/size-54%20KB-brightgreen)
+![Size](https://img.shields.io/badge/size-60%20KB-brightgreen)
 
 
 A modern :) , native Windows Todo application built with C and Win32 API. This project demonstrates advanced Windows GUI programming and system integration capabilities.
