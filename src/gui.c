@@ -1,29 +1,26 @@
 #include "todo.h"
 #include <math.h>
+#include <string.h>
 
 NOTIFYICONDATA nid;
 HMENU hTrayMenu;
 BOOL bSortOrder = TRUE;
 UINT dpi = 96;
 
-
-char easterEggBuffer[20] = {0};
-int easterEggIndex = 0;
-const char* easterEggCode = "goodtodooo";
+typedef UINT (WINAPI *_GetDpiForWindowFunc)(HWND);
 
 // Global label HWNDs
 HWND hTitleLabel;   // Label for the Title field
 HWND hDescLabel;    // Label for the Description field
 HWND hPriorityLabel; // Label for the Priority field
 
-int GetDpiForWindow(HWND hwnd) {
+int _GetDpiForWindow(HWND hwnd) {
     // Get the DPI for the given window (for high-DPI support)
     HMODULE hUser32 = GetModuleHandle("user32.dll");
     if (hUser32) {
-        typedef UINT (WINAPI *GetDpiForWindowFunc)(HWND);
-        GetDpiForWindowFunc getDpiForWindow = (GetDpiForWindowFunc)GetProcAddress(hUser32, "GetDpiForWindow");
-        if (getDpiForWindow) {
-            return getDpiForWindow(hwnd);
+        _GetDpiForWindowFunc _getDpiForWindow = (_GetDpiForWindowFunc)GetProcAddress(hUser32, "GetDpiForWindow");
+        if (_getDpiForWindow) {
+            return _getDpiForWindow(hwnd);
         }
     }
     return 96;
@@ -168,7 +165,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         
         case WM_CREATE: {
             // Window creation: initialize all controls and layout
-            dpi = GetDpiForWindow(hwnd);
+            dpi = _GetDpiForWindow(hwnd);
             hFont = CreateFont(ScaleForDpi(16), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
                              DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                              CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Segoe UI");
@@ -397,22 +394,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             }
             if (pnmh->code == NM_DBLCLK && pnmh->idFrom == ID_LISTVIEW) {
                 startEditTodo();
-            }
-            break;
-        }
-        
-        case WM_CHAR: {
-            // Easter egg: detect secret code typed by user
-            if (wParam >= 'a' && wParam <= 'z') {
-                easterEggBuffer[easterEggIndex] = (char)wParam;
-                easterEggIndex = (easterEggIndex + 1) % 20;
-                
-                if (strcmp(easterEggBuffer, easterEggCode) == 0) {
-                    SetWindowText(hwnd, "🎉 Yay! You found the easter egg! 🎉");
-                    MessageBox(hwnd, "You're awesome! 🌟", "Good Todo!", MB_OK | MB_ICONINFORMATION);
-                    memset(easterEggBuffer, 0, sizeof(easterEggBuffer));
-                    easterEggIndex = 0;
-                }
             }
             break;
         }
