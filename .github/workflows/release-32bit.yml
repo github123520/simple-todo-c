@@ -18,23 +18,23 @@ jobs:
     
     - name: Download MinGW 32-bit
       run: |
+        $tempDir = [System.IO.Path]::GetTempPath()
         curl -L -o mingw32.7z https://github.com/niXman/mingw-builds-binaries/releases/download/15.1.0-rt_v12-rev0/i686-15.1.0-release-win32-dwarf-msvcrt-rt_v12-rev0.7z
-        7z x mingw32.7z -o$env:RUNNER_TEMP/mingw32
+        7z x mingw32.7z -o"$tempDir\mingw32"
     
     - name: Add MinGW to PATH
       run: |
-        $env:PATH = "$env:RUNNER_TEMP/mingw32/bin;$env:PATH"
-        echo "PATH=$env:PATH" >> $env:GITHUB_ENV
+        $mingwBin = "$env:TEMP\mingw32\i686-15.1.0-release-win32-dwarf-msvcrt-rt_v12-rev0\bin"
+        echo "PATH=$mingwBin;$env:PATH" >> $env:GITHUB_ENV
     
     - name: Build
+      shell: cmd
       run: |
-        mkdir -p bin
-        # Create resource file from manifest and icon
-        echo '1 24 "src/app.manifest"' > src/app.rc
-        echo '400 ICON "img/todo.ico"' >> src/app.rc
-        windres src/app.rc -O coff -o src/app.res
-        # Compile with manifest, icon, and optimizations
-        gcc src/main.c src/todo.c src/gui.c src/app.res -o bin/todo32.exe -mwindows -lcomctl32 -luxtheme -Os -s
+        if not exist bin mkdir bin
+        echo 1 24 "src/app.manifest" > src\app.rc
+        echo 400 ICON "img/todo.ico" >> src\app.rc
+        windres src\app.rc -O coff -o src\app.res
+        gcc src\main.c src\todo.c src\gui.c src\app.res -o bin\todo32.exe -mwindows -lcomctl32 -luxtheme -Os -s -static -Wl,--subsystem,windows,5.1
 
     - name: Create Release
       id: create_release
