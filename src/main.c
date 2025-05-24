@@ -27,7 +27,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     hMainWindow = CreateWindow(
         "TodoApp", "Todo Application",
         WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 800, 450,
+        CW_USEDEFAULT, CW_USEDEFAULT, 800, 650,
         NULL, NULL, hInstance, NULL
     );
 

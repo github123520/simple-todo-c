@@ -21,7 +21,7 @@ echo 400 ICON "img/todo.ico" >> src/app.rc
 windres src/app.rc -O coff -o src/app.res
 
 echo Compiling sources...
-gcc src/main.c src/todo.c src/gui.c src/app.res -o bin/todo.exe ^
+gcc src/main.c src/todo.c src/gui.c src/utils/search.c src/app.res -o bin/todo.exe ^
     -mwindows ^
     -lcomctl32 ^
     -luxtheme ^

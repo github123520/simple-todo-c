@@ -1,8 +1,9 @@
 # 🌟 Simple Todo (C / WinAPI)
-![Platform](https://img.shields.io/badge/platform-windows-blue)
-![Language](https://img.shields.io/badge/language-C-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-yellow)
-![Size](https://img.shields.io/badge/size-60%20KB-brightgreen)
+![Platform](https://img.shields.io/badge/platform-windows-blue?style=for-the-badge)
+![Language](https://img.shields.io/badge/language-C-brightgreen?style=for-the-badge)
+![License](https://img.shields.io/badge/license-MIT-yellow?style=for-the-badge)
+![Size](https://img.shields.io/badge/size-60%20KB-brightgreen?style=for-the-badge)
+[![GitHub release (latest by tag)](https://img.shields.io/github/v/tag/Efeckc17/simple-todo-c?style=for-the-badge&color=green&label=latest)](https://github.com/Efeckc17/simple-todo-c/releases)
 
 
 A modern :) , native Windows Todo application built with C and Win32 API. This project demonstrates advanced Windows GUI programming and system integration capabilities.
@@ -17,6 +18,7 @@ A modern :) , native Windows Todo application built with C and Win32 API. This p
 - 🔔 System tray integration (minimize to tray)
 - 🌙 Native Windows look and feel
 - 🚀 Auto-start with Windows option
+- 🔍 Real-time search functionality with case-insensitive matching
 
 ## 🛠️ Technical Details
 
@@ -74,13 +76,16 @@ The application stores todos in a binary file:
 .
 ├── src/
 │   ├── app.manifest
-│   ├── main.c      # Application entry point
-│   ├── todo.c      # Todo management logic
-│   ├── todo.h      # Todo data structures and declarations
-│   └── gui.c       # GUI implementation
-├── bin/            # Compiled executable
-├── build.bat       # Build script
-└── README.md       # This file
+│   ├── main.c           # Application entry point
+│   ├── todo.c           # Todo management logic
+│   ├── todo.h           # Todo data structures and declarations
+│   ├── gui.c            # GUI implementation
+│   └── utils/
+│       ├── search.c     # Search functionality implementation
+│       └── search.h     # Search function declarations
+├── bin/                 # Compiled executable
+├── build.bat            # Build script
+└── README.md            # This file
 ```
 
 ## 🔧 Development

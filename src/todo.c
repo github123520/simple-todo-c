@@ -1,4 +1,5 @@
 #include "todo.h"
+#include "utils/search.h"
 
 HWND hMainWindow;
 HWND hListView;
@@ -115,35 +116,40 @@ void saveTodos(TodoList* list) {
 }
 
 void refreshListView(void) {
+    char searchText[MAX_TITLE_LENGTH];
+    GetWindowText(hSearchEdit, searchText, MAX_TITLE_LENGTH);
+    
+    
+    if (strlen(searchText) > 0 && strcmp(searchText, "Search todos...") != 0) {
+        filterTodosBySearch(searchText);
+        return;
+    }
+    
+    
     ListView_DeleteAllItems(hListView);
     
     for (int i = 0; i < todoList.count; i++) {
-        Todo* todo = &todoList.todos[i];
-        char idStr[10];
-        char priorityStr[10];
-        char statusStr[20];
-        char createdStr[30];
+        char idStr[10], priorityStr[10], statusStr[20], createdStr[50];
+        sprintf(idStr, "%d", todoList.todos[i].id);
+        sprintf(priorityStr, "%d", todoList.todos[i].priority);
+        strcpy(statusStr, todoList.todos[i].completed ? "Completed" : "Pending");
         
-        sprintf(idStr, "%d", todo->id);
-        sprintf(priorityStr, "%d", todo->priority);
-        strcpy(statusStr, todo->completed ? "Completed" : "Pending");
-        strftime(createdStr, sizeof(createdStr), "%Y-%m-%d %H:%M", localtime(&todo->created_at));
+        struct tm* timeinfo = localtime(&todoList.todos[i].created_at);
+        strftime(createdStr, sizeof(createdStr), "%Y-%m-%d %H:%M", timeinfo);
         
         LVITEM lvi = {0};
-        lvi.mask = LVIF_TEXT | LVIF_STATE;
+        lvi.mask = LVIF_TEXT | LVIF_PARAM;
         lvi.iItem = i;
-        lvi.state = 0;
-        lvi.stateMask = 0;
-        
         lvi.iSubItem = 0;
         lvi.pszText = idStr;
-        ListView_InsertItem(hListView, &lvi);
+        lvi.lParam = i;
         
-        ListView_SetItemText(hListView, i, 1, todo->title);
-        ListView_SetItemText(hListView, i, 2, todo->description);
-        ListView_SetItemText(hListView, i, 3, priorityStr);
-        ListView_SetItemText(hListView, i, 4, statusStr);
-        ListView_SetItemText(hListView, i, 5, createdStr);
+        int idx = ListView_InsertItem(hListView, &lvi);
+        ListView_SetItemText(hListView, idx, 1, todoList.todos[i].title);
+        ListView_SetItemText(hListView, idx, 2, todoList.todos[i].description);
+        ListView_SetItemText(hListView, idx, 3, priorityStr);
+        ListView_SetItemText(hListView, idx, 4, statusStr);
+        ListView_SetItemText(hListView, idx, 5, createdStr);
     }
 }
 

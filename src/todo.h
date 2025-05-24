@@ -28,6 +28,7 @@
 #define ID_PRIORITY_COMBO 8
 #define ID_SAVE_BUTTON 9
 #define ID_CANCEL_BUTTON 10
+#define ID_SEARCH_EDIT 11
 
 #define WM_TRAYICON (WM_USER + 1)
 #define ID_TRAY_ICON 100

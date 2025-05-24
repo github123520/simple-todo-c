@@ -37,7 +37,7 @@ jobs:
         echo '400 ICON "img/todo.ico"' >> src/app.rc
         windres src/app.rc -O coff -o src/app.res
         # Compile with manifest, icon, and optimizations
-        gcc src/main.c src/todo.c src/gui.c src/app.res -o bin/todo.exe -mwindows -lcomctl32 -luxtheme -Os -s
+        gcc src/main.c src/todo.c src/gui.c src/utils/search.c src/app.res -o bin/todo.exe -mwindows -lcomctl32 -luxtheme -Os -s
 
     - name: Create Release
       id: create_release
