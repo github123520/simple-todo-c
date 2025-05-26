@@ -25,8 +25,8 @@ jobs:
     - name: Add MinGW to PATH
       run: |
         $mingwBin = "$env:TEMP\mingw32\i686-15.1.0-release-win32-dwarf-msvcrt-rt_v12-rev0\bin"
-        echo "PATH=$mingwBin;$env:PATH" >> $env:GITHUB_ENV
-        echo "MINGW_PATH=$mingwBin" >> $env:GITHUB_ENV
+        $env:PATH = "$mingwBin;$env:PATH"
+        echo "PATH=$env:PATH" >> $env:GITHUB_ENV
     
     - name: Verify MinGW installation
       run: |
@@ -40,7 +40,7 @@ jobs:
         echo 1 24 "src/app.manifest" > src\app.rc
         echo 400 ICON "img/todo.ico" >> src\app.rc
         windres src\app.rc -O coff -o src\app.res
-        %MINGW_PATH%\gcc src\main.c src\todo.c src\gui.c src\utils\search.c src\app.res -o bin\todo32.exe -m32 -mwindows -lcomctl32 -luxtheme -Os -s -static
+        gcc src\main.c src\todo.c src\gui.c src\utils\search.c src\app.res -o bin\todo32.exe -m32 -mwindows -lcomctl32 -luxtheme -Os -s -static
 
     - name: Create Release
       id: create_release
