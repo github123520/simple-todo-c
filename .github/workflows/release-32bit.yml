@@ -16,31 +16,24 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
     
-    - name: Download MinGW 32-bit
-      run: |
-        $tempDir = [System.IO.Path]::GetTempPath()
-        curl -L -o mingw32.7z https://github.com/niXman/mingw-builds-binaries/releases/download/15.1.0-rt_v12-rev0/i686-15.1.0-release-win32-dwarf-msvcrt-rt_v12-rev0.7z
-        7z x mingw32.7z -o"$tempDir\mingw32"
-    
-    - name: Add MinGW to PATH
-      run: |
-        $mingwBin = "$env:TEMP\mingw32\i686-15.1.0-release-win32-dwarf-msvcrt-rt_v12-rev0\bin"
-        $env:PATH = "$mingwBin;$env:PATH"
-        echo "PATH=$env:PATH" >> $env:GITHUB_ENV
-    
-    - name: Verify MinGW installation
-      run: |
-        gcc --version
-        where gcc
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW32
+        update: true
+        install: >-
+          mingw-w64-i686-gcc
+          mingw-w64-i686-binutils
+          mingw-w64-i686-tools-git
     
     - name: Build
-      shell: cmd
+      shell: msys2 {0}
       run: |
-        if not exist bin mkdir bin
-        echo 1 24 "src/app.manifest" > src\app.rc
-        echo 400 ICON "img/todo.ico" >> src\app.rc
-        windres src\app.rc -O coff -o src\app.res
-        gcc src\main.c src\todo.c src\gui.c src\utils\search.c src\app.res -o bin\todo32.exe -m32 -mwindows -lcomctl32 -luxtheme -Os -s -static
+        if [ ! -d "bin" ]; then mkdir bin; fi
+        echo "1 24 src/app.manifest" > src/app.rc
+        echo "400 ICON img/todo.ico" >> src/app.rc
+        windres src/app.rc -O coff -o src/app.res
+        gcc src/main.c src/todo.c src/gui.c src/utils/search.c src/app.res -o bin/todo32.exe -m32 -mwindows -lcomctl32 -luxtheme -Os -s -static
 
     - name: Create Release
       id: create_release
