@@ -46,7 +46,7 @@ void filterTodosBySearch(const char* searchText) {
             lvi.iItem = i;
             lvi.iSubItem = 0;
             lvi.pszText = idStr;
-            lvi.lParam = i;
+            lvi.lParam = todoList.todos[i].id;
             
             int idx = ListView_InsertItem(hListView, &lvi);
             ListView_SetItemText(hListView, idx, 1, todoList.todos[i].title);

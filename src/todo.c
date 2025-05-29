@@ -119,12 +119,10 @@ void refreshListView(void) {
     char searchText[MAX_TITLE_LENGTH];
     GetWindowText(hSearchEdit, searchText, MAX_TITLE_LENGTH);
     
-    
     if (strlen(searchText) > 0 && strcmp(searchText, "Search todos...") != 0) {
         filterTodosBySearch(searchText);
         return;
     }
-    
     
     ListView_DeleteAllItems(hListView);
     
@@ -142,7 +140,7 @@ void refreshListView(void) {
         lvi.iItem = i;
         lvi.iSubItem = 0;
         lvi.pszText = idStr;
-        lvi.lParam = i;
+        lvi.lParam = todoList.todos[i].id;
         
         int idx = ListView_InsertItem(hListView, &lvi);
         ListView_SetItemText(hListView, idx, 1, todoList.todos[i].title);
@@ -197,6 +195,15 @@ void addTodo(void) {
     SendMessage(hPriorityCombo, CB_SETCURSEL, 0, 0);
 }
 
+Todo* findTodoById(int id) {
+    for (int i = 0; i < todoList.count; i++) {
+        if (todoList.todos[i].id == id) {
+            return &todoList.todos[i];
+        }
+    }
+    return NULL;
+}
+
 void startEditTodo(void) {
     int selectedIndex = ListView_GetNextItem(hListView, -1, LVNI_SELECTED);
     if (selectedIndex == -1) {
@@ -208,8 +215,19 @@ void startEditTodo(void) {
         return;
     }
     
-    Todo* todo = &todoList.todos[selectedIndex];
-    editingIndex = selectedIndex;
+    LVITEM lvi = {0};
+    lvi.mask = LVIF_PARAM;
+    lvi.iItem = selectedIndex;
+    ListView_GetItem(hListView, &lvi);
+    int todoId = (int)lvi.lParam;
+    
+    Todo* todo = findTodoById(todoId);
+    if (!todo) {
+        showErrorBox("Selected todo not found!", "Error");
+        return;
+    }
+    
+    editingIndex = todoId;
     
     SetWindowText(hTitleEdit, todo->title);
     SetWindowText(hDescEdit, todo->description);
@@ -230,6 +248,12 @@ void saveEditTodo(void) {
         return;
     }
     
+    Todo* todo = findTodoById(editingIndex);
+    if (!todo) {
+        showErrorBox("Todo not found!", "Error");
+        return;
+    }
+    
     char title[MAX_TITLE_LENGTH];
     char description[MAX_DESC_LENGTH];
     
@@ -242,7 +266,6 @@ void saveEditTodo(void) {
         return;
     }
     
-    Todo* todo = &todoList.todos[editingIndex];
     strcpy(todo->title, title);
     strcpy(todo->description, description);
     todo->priority = priority;
@@ -297,13 +320,16 @@ void deleteTodo(void) {
         showErrorBox("Please select a todo to delete!", "Error");
         return;
     }
-    char szTaskId[10];
-    ZeroMemory(szTaskId, 10);
-    ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
+    
     while (selectedIndex != -1) {
-        int iTargetID =  atoi(szTaskId);
-        for (int i = 0; i < todoList.count;i++) {
-            if (todoList.todos[i].id == iTargetID) {
+        LVITEM lvi = {0};
+        lvi.mask = LVIF_PARAM;
+        lvi.iItem = selectedIndex;
+        ListView_GetItem(hListView, &lvi);
+        int todoId = (int)lvi.lParam;
+        
+        for (int i = 0; i < todoList.count; i++) {
+            if (todoList.todos[i].id == todoId) {
                 for (int j = i; j < todoList.count - 1; j++) {
                     todoList.todos[j] = todoList.todos[j + 1];
                 }
@@ -311,10 +337,10 @@ void deleteTodo(void) {
                 break;
             }
         }
+        
         selectedIndex = ListView_GetNextItem(hListView, selectedIndex, LVNI_SELECTED);
-        if (selectedIndex != -1)
-            ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
     }
+    
     saveTodos(&todoList);
     refreshListView();
 }
@@ -325,22 +351,21 @@ void completeTodo(void) {
         showErrorBox("Please select a todo to complete!", "Error");
         return;
     }
-    char szTaskId[10];
-    ZeroMemory(szTaskId, 10);
     
-    ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
     while (selectedIndex != -1) {
-        int iTargetID = atoi(szTaskId);
-        for (int i = 0; i < todoList.count; i++) {
-            if (todoList.todos[i].id == iTargetID) {
-                todoList.todos[i].completed = 1;
-                todoList.todos[i].completed_at = time(NULL);
-                break;
-            }
+        LVITEM lvi = {0};
+        lvi.mask = LVIF_PARAM;
+        lvi.iItem = selectedIndex;
+        ListView_GetItem(hListView, &lvi);
+        int todoId = (int)lvi.lParam;
+        
+        Todo* todo = findTodoById(todoId);
+        if (todo) {
+            todo->completed = 1;
+            todo->completed_at = time(NULL);
         }
+        
         selectedIndex = ListView_GetNextItem(hListView, selectedIndex, LVNI_SELECTED);
-        if (selectedIndex != -1)
-            ListView_GetItemText(hListView, selectedIndex, 0, szTaskId, 10);
     }
     
     saveTodos(&todoList);

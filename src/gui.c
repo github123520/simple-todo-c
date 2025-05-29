@@ -388,9 +388,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             if (pnmh->code == LVN_ITEMCHANGED && pnmh->idFrom == ID_LISTVIEW) {
                 LPNMLISTVIEW pnmv = (LPNMLISTVIEW)lParam;
                 if (pnmv->uNewState & LVIS_SELECTED) {
-                    int selectedIndex = pnmv->iItem;
-                    if (selectedIndex >= 0 && selectedIndex < todoList.count) {
-                        Todo* todo = &todoList.todos[selectedIndex];
+                    LVITEM lvi = {0};
+                    lvi.mask = LVIF_PARAM;
+                    lvi.iItem = pnmv->iItem;
+                    ListView_GetItem(hListView, &lvi);
+                    int todoId = (int)lvi.lParam;
+                    
+                    Todo* todo = findTodoById(todoId);
+                    if (todo) {
                         SetWindowText(hTitleEdit, todo->title);
                         SetWindowText(hDescEdit, todo->description);
                         SendMessage(hPriorityCombo, CB_SETCURSEL, todo->priority - 1, 0);
@@ -400,7 +405,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             if (pnmh->code == LVN_COLUMNCLICK) {
                 bSortOrder = !bSortOrder;
                 NMLISTVIEW* pnmlv = (NMLISTVIEW*)lParam;
-                ListView_SortItemsEx(hListView, SortTodo,  &pnmlv->iSubItem);
+                ListView_SortItemsEx(hListView, SortTodo, &pnmlv->iSubItem);
                 return TRUE;
             }
             if (pnmh->code == NM_DBLCLK && pnmh->idFrom == ID_LISTVIEW) {

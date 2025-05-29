@@ -101,5 +101,6 @@ void showTrayMenu(HWND hwnd);
 void setAutoStart(BOOL enable);
 BOOL isAutoStartEnabled(void);
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+Todo* findTodoById(int id);
 
 #endif 
