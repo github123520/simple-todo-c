@@ -10,11 +10,12 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install MinGW
-        uses: egor-tensin/setup-mingw@v2
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
         with:
-          platform: x64
+          install: mingw-w64-x86_64-gcc
       - name: Build
+        shell: msys2 {0}
         run: |
           cd src
           gcc -o ../bin/todo.exe main.c todo.c gui.c utils/search.c -lgdi32 -lcomctl32 -luser32 -lole32 -luxtheme
