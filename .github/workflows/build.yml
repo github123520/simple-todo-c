@@ -19,7 +19,7 @@ jobs:
           cd src
           gcc -o ../bin/todo.exe main.c todo.c gui.c utils/search.c -lgdi32 -lcomctl32 -luser32 -lole32 -luxtheme
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: todo-exe
           path: bin/todo.exe
