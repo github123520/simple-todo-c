@@ -18,6 +18,7 @@ jobs:
         shell: msys2 {0}
         run: |
           cd src
+          mkdir -p ../bin
           gcc -o ../bin/todo.exe main.c todo.c gui.c utils/search.c -lgdi32 -lcomctl32 -luser32 -lole32 -luxtheme
       - name: Upload artifact
         uses: actions/upload-artifact@v4
